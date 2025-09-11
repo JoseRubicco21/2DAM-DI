@@ -1,0 +1,29 @@
+body {
+    margin: 2%;
+}
+
+.container {
+    margin: 0 auto;
+    float: left;
+    width: 60%;
+    height: 60%;
+    padding: 2%;
+    border: dashed #8c0303 2px;
+}
+
+.subcontainer {
+    float: left;
+    height: 50vh;
+    width: 48%;
+}
+
+#yellow {
+    background-color: #f0e68c;
+    border: 4px #2f4f4f solid;
+}
+
+#blue {
+    background-color: #e0ffff;
+    border: 4px #cd5c5c solid;
+}
+
