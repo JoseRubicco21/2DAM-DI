@@ -1,25 +1,37 @@
-
-
 .container {
-    
+    display: flex;
+    width: 40%;
+    height: 90vh;
+    border: 10px solid black;
+    gap: 2%;
+    padding: 1%; 
 }
 
 .column {
-
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    width: 50%;
+    height: 100%;
+    gap: 1%; 
 }
 
  #green {
+    height: 50%;
     background-color: #008000;
  }
 
  #red {
+    height: 50%;
     background-color: #ff0000;
  }
 
  #purple{
+    height: 80%;
     background-color: #0000ff;
  }
 
  #blue{
+    height: 20%;
     background-color: #8a2be2;
  }
