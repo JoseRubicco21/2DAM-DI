@@ -1,0 +1,28 @@
+body {
+    margin: 2%;
+}
+
+.container {
+    margin: 0 auto;
+    height: 60%;
+    display: grid;
+    padding: 2%;
+    border: dashed #8c0303 4px;
+    grid-template-columns: 1fr 1fr;
+}
+
+.subcontainer {
+    height: 50vh;
+    width: 100%;
+}
+
+#yellow {
+    background-color: #f0e68c;
+    border: 4px #2f4f4f solid;
+}
+
+#blue {
+    background-color: #e0ffff;
+    border: 4px #cd5c5c solid;
+}
+
