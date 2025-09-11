@@ -1,0 +1,21 @@
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 6fr;
+}
+
+#red {
+    background-color: red;
+}
+
+#blue {
+    background-color: blue;
+}
+
+#white {
+    background-color: white;
+}
+
+.flag {
+    height: 50vh;
+    
+}
