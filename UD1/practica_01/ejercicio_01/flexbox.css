@@ -1,0 +1,21 @@
+.container {
+    display: flex;
+    flex-direction: row;
+}
+
+.flag {
+    width: 15%;
+    height: 50vh;
+}
+
+#red {
+    background-color: red;
+}
+
+#blue {
+    background-color: blue;
+}
+
+#white {
+    background-color: white;
+}
