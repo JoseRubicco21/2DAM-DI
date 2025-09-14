@@ -1,0 +1,19 @@
+.container {
+    width: 50%;
+    height: 80vh;
+    border: 3px dotted black;
+    margin: 0 auto;
+    padding: 1%;
+    box-sizing: border-box;
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 2%;
+}
+
+#orange {
+    background-color: rgb(255 127 80);
+}
+
+#blue {
+    background-color: rgb(100 149 237);
+}
