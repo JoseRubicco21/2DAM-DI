@@ -1,0 +1,70 @@
+.parent {
+  display: flex;
+  flex-direction: column;
+  width: 80%;
+  height: 80vh;
+  gap: 2%;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.top-section {
+  display: flex;
+  flex: 3;
+  gap: 2%;
+}
+
+.bottom-section {
+  display: flex;
+  flex: 5;
+  gap: 2%;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  flex: 2;
+  gap: 2%;
+}
+
+.right-column {
+  display: flex;
+  flex-direction: column;
+  flex: 2;
+  gap: 2%;
+}
+
+.div7 {
+  background-color: rgb(76 235 169);
+  flex: 4;
+}
+
+.div1 {
+  background-color: green;
+  flex: 2;
+}
+
+.div5 {
+  background-color: red;
+  flex: 1;
+}
+
+.div4 {
+  background-color: rgb(255 109 0);
+  flex: 4;
+}
+
+.div6 {
+  background-color: rgb(240 0 255);
+  flex: 2;
+}
+
+.div2 {
+  background-color: rgb(1 80 159);
+  flex: 5;
+}
+
+.div3 {
+  background-color: rgb(202 158 97);
+  flex: 1;
+}

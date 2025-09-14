@@ -1,0 +1,83 @@
+// Me and my homies hate float.
+
+.parent {
+  width: 80%;
+  height: 90vh;
+  margin: 0 auto;
+}
+
+.column {
+  float: left;
+  width: 48%;
+  height: 90vh;
+  margin: 0 1%;
+}
+
+.row {
+  width: 100%;
+  margin-bottom: 2%;
+  overflow: hidden;
+}
+
+.row:last-child {
+  margin-bottom: 0;
+}
+
+/* First column, first row */
+.div1 {
+  background-color: rgb(76 235 169);
+  width: 100%;
+  height: 200px;
+}
+
+/* First column, second row */
+.div2,
+.div3,
+.div4 {
+  float: left;
+  width: 100%;
+  height: 100px;
+}
+
+.div2 {
+  background-color: red;
+}
+
+.div3 {
+  background-color: rgb(255 109 0);
+  height: 200px;
+}
+
+.div4 {
+  background-color: rgb(240 0 255);
+  height: 304px;
+}
+
+/* Second column */
+.div5 {
+  background-color: green;
+  width: 50%;
+  height: 150px;
+  margin-bottom: 2%;
+}
+
+.div6 {
+  background-color: rgb(1 80 159);
+  width: 50%;
+  height: 300px;
+  margin-bottom: 2%;
+}
+
+.div7 {
+  background-color: rgb(202 158 97);
+  width: 50%;
+  height: 50px;
+}
+
+/* Clearfix */
+.parent::after,
+.row::after {
+  content: "";
+  display: table;
+  clear: both;
+}
