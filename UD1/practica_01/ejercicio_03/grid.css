@@ -1,0 +1,27 @@
+.container {
+  width: 40%;
+  height: 90vh;
+  border: 5px solid black;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(8, 1fr);
+  gap: 2% 2%;
+  padding: 1%;
+}
+
+#green {
+  grid-area: 1 / 1 / 5 / 2;
+  background-color: green;
+}
+#red {
+  grid-area: 5 / 1 / 9 / 2;
+  background-color: red;
+}
+#blue {
+  grid-area: 1 / 2 / 3 / 3;
+  background-color: blue;
+}
+#purple {
+  grid-area: 3 / 2 / 9 / 3;
+    background-color: #8a2be2;
+}

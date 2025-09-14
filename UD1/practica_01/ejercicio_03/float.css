@@ -1,0 +1,37 @@
+.container {
+    width: 40%;
+    height: 80vh;
+    border: 10px solid black;
+    padding: 2%;
+
+}
+
+.column {
+    float: left;
+    width: 48%;
+    height: 100%;
+    margin: 0 1%;
+}
+
+#green {
+    height: 48%;
+    background-color: #008000;
+    margin-bottom: 4%;
+}
+
+#red {
+    height: 48%;
+    background-color: #ff0000;
+}
+
+#purple {
+    height: 76%;
+    background-color: #8a2be2;
+}
+
+#blue {
+    height: 20%;
+    background-color: #0000ff;
+    margin-bottom: 4%;
+}
+
