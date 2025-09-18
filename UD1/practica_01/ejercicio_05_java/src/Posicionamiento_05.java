@@ -11,7 +11,6 @@ public class Posicionamiento_05 {
     public Posicionamiento_05(JFrame vFrame) {
         paneles = new ArrayList<>();
         ventana = vFrame;
-        ventana.getContentPane().setBackground(Color.black);
     }
 
     public ArrayList<JPanel> getPaneles() {
