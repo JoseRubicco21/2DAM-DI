@@ -7,4 +7,13 @@ The idea for the simplification is that it can fit clearly in a favicon.
 
 Thre should be no colors as we intend to build a luxury / alt jewerly brand similar to Comte project and Myril jewels.
 
+Typography that needs to be checked:
+- https://fonts.google.com/specimen/Playball?preview.text=K&categoryFilters=Feeling:%2FExpressive%2FLoud
+- https://fonts.google.com/specimen/Viaoda+Libre?preview.text=K&categoryFilters=Feeling:%2FExpressive%2FLoud
+- https://fonts.google.com/specimen/Sofia?preview.text=K&categoryFilters=Feeling:%2FExpressive%2FLoud
+- https://fonts.google.com/specimen/Rochester?preview.text=K&categoryFilters=Feeling:%2FExpressive%2FLoud
+- https://fonts.google.com/specimen/Protest+Guerrilla?preview.text=K&categoryFilters=Feeling:%2FExpressive%2FLoud
+- https://fonts.google.com/specimen/New+Rocker?preview.text=K&categoryFilters=Feeling:%2FExpressive%2FLoud
 
+
+FavIcon is most likely going to be the most simplified logo possible in black and white.
