@@ -1,5 +1,9 @@
+import controller.CalculadoraController;
+
 public class App {
     public static void main(String[] args) throws Exception {
-        System.out.println("Hello, World!");
+        CalculadoraController calc = new CalculadoraController();
+        calc.parseOperation("2+3*4-1/2");
+        
     }
 }

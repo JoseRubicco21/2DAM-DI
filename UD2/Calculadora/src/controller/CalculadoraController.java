@@ -1,7 +1,14 @@
 package controller;
 
+import java.util.Map;
+import java.util.Stack;
+import java.util.regex.Pattern;
+
 public class CalculadoraController {
 
+    private Stack<Map<String, Integer>> history;
+    private static String operandPattern = ("\\d+(?:\\.\\d+)?");
+    private static String operatorPattern = ("[+\\-*/]");
 
     public double add(int a, int b) {
         return a + b;
@@ -25,5 +32,19 @@ public class CalculadoraController {
     public double power(int a, int b) {
         return Math.pow(a, b);
     }
+
+    public void parseOperation(String operation){
+       String[] operands = operation.split(operandPattern);
+       String[] operators = operation.split(operatorPattern);
+
+         for (String op : operands) {
+              System.out.println(op);
+         }
+
+            for (String op : operators) {
+                System.out.println(op);
+            }
+    }
+
 
 }
