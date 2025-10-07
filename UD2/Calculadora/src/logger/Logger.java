@@ -1,7 +1,9 @@
-package log;
+package logger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import logger.enums.Colors;
+import logger.enums.LogLevel;
 
 /**
  * A comprehensive logging utility class with ANSI color support for terminal output.
@@ -33,71 +35,7 @@ import java.time.format.DateTimeFormatter;
  * @since 1.0
  */
 public class Logger {
-    
-    /**
-     * Enumeration of predefined log levels with associated color schemes.
-     * 
-     * <p>Each log level has a predefined foreground and background color combination
-     * that provides visual distinction between different types of log messages.
-     */
-    public enum LogLevel {
-        /** Debug level - Cyan text on black background. */
-        DEBUG(Colors.CYAN, Colors.BG_BLACK),
-        
-        /** Info level - Bright white text on blue background. */
-        INFO(Colors.BRIGHT_WHITE, Colors.BG_BLUE),
-        
-        /** Success level - Bright white text on green background. */
-        SUCCESS(Colors.BRIGHT_WHITE, Colors.BG_GREEN),
-        
-        /** Warning level - Black text on yellow background. */
-        WARNING(Colors.BLACK, Colors.BG_YELLOW),
-        
-        /** Error level - Bright red text on red background. */
-        ERROR(Colors.BRIGHT_RED, Colors.BG_RED),
-        
-        /** Critical level - Bright yellow text on orange background. */
-        CRITICAL(Colors.ORANGE, Colors.BG_ORANGE_3),
-        
-        /** Network level - Bright purple text on bright purple background. */
-        NETWORK(Colors.WHITE, Colors.BG_BRIGHT_PURPLE);
-        
-        /** The foreground color for this log level. */
-        private final Colors foreground;
-        
-        /** The background color for this log level. */
-        private final Colors background;
-        
-        /**
-         * Constructs a LogLevel with the specified color scheme.
-         * 
-         * @param foreground the foreground color
-         * @param background the background color
-         */
-        LogLevel(Colors foreground, Colors background) {
-            this.foreground = foreground;
-            this.background = background;
-        }
-        
-        /**
-         * Returns the foreground color for this log level.
-         * 
-         * @return the foreground color
-         */
-        public Colors getForeground() {
-            return foreground;
-        }
-        
-        /**
-         * Returns the background color for this log level.
-         * 
-         * @return the background color
-         */
-        public Colors getBackground() {
-            return background;
-        }
-    }
-    
+     
     /** Date and time formatter for timestamps. */
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
     

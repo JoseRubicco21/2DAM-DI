@@ -1,4 +1,6 @@
-package log;
+package logger;
+
+import logger.enums.Colors;
 
 public class LoggerTest {
     public static void main(String[] args) {
