@@ -14,12 +14,6 @@ import java.awt.event.MouseAdapter;
 
 public class CalculadoraComponentButton extends JButton{
     
- private static final Color BACKGROUND_COLOR = new Color(0x2d2d2d);
-    private static final Color TEXT_COLOR = Color.WHITE;
-    private static final Color HOVER_COLOR = new Color(0x3d3d3d);
-    private static final Color PRESSED_COLOR = new Color(0x1d1d1d);
-    private static final int BORDER_RADIUS = 15;
-    
     private boolean isHovered = false;
     private boolean isPressed = false;
     
@@ -32,7 +26,7 @@ public class CalculadoraComponentButton extends JButton{
         setContentAreaFilled(false);
         setBorderPainted(false);
         setFocusPainted(false);
-        setForeground(TEXT_COLOR);
+        setForeground(Color.WHITE);
         setFont(new Font("Arial", Font.BOLD, 14));
         
         // Add mouse listeners for hover effects
@@ -67,28 +61,28 @@ public class CalculadoraComponentButton extends JButton{
     protected void paintComponent(Graphics g) {
         Graphics2D g2d = (Graphics2D) g.create();
         
-        // Enable antialiasing for smooth rounded corners
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         
-        // Determine background color based on state
-        Color bgColor = BACKGROUND_COLOR;
+        // Use the background color that was set via setBackground()
+        Color bgColor = getBackground(); // This respects your styling!
+        
+        // Apply hover/press effects if needed
         if (isPressed) {
-            bgColor = PRESSED_COLOR;
+            bgColor = bgColor.darker();
         } else if (isHovered) {
-            bgColor = HOVER_COLOR;
+            bgColor = bgColor.brighter();
         }
         
-        // Create rounded rectangle
+        // Draw rounded rectangle with the correct background
         RoundRectangle2D roundedRect = new RoundRectangle2D.Float(
-            0, 0, getWidth(), getHeight(), BORDER_RADIUS, BORDER_RADIUS
+            0, 0, getWidth(), getHeight(), 15, 15
         );
         
-        // Fill background
         g2d.setColor(bgColor);
         g2d.fill(roundedRect);
         
-        // Draw text
-        g2d.setColor(getForeground());
+        // Draw text with the foreground color
+        g2d.setColor(getForeground()); // Respects setForeground()
         g2d.setFont(getFont());
         
         FontMetrics fm = g2d.getFontMetrics();
