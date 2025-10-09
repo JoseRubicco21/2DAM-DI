@@ -1,4 +1,4 @@
- package logger.enums;
+ package libs.logger.enums;
  
  /**
      * Enumeration of predefined log levels with associated color schemes.

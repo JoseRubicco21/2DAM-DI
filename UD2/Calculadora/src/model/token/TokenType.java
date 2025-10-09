@@ -1,6 +1,6 @@
 package model.token;
 
-public enum Tokens {
+public enum TokenType {
     INT,
     PLUS,
     MINUS,

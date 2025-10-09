@@ -1,9 +1,10 @@
-package logger;
+package libs.logger;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import logger.enums.Colors;
-import logger.enums.LogLevel;
+
+import libs.logger.enums.Colors;
+import libs.logger.enums.LogLevel;
 
 /**
  * A comprehensive logging utility class with ANSI color support for terminal output.
@@ -123,7 +124,7 @@ public class Logger {
      * @param message the message to log
      * @param foreground the foreground color to use
      */
-    public static void log(String message, Colors foreground) {
+    public static void info(String message, Colors foreground) {
         print(message, foreground, null, null);
     }
     
@@ -300,7 +301,7 @@ public class Logger {
      * @param length the number of times to repeat the character
      */
     public static void separator(String character, int length) {
-        log(character.repeat(length), Colors.BRIGHT_BLACK);
+        info(character.repeat(length), Colors.BRIGHT_BLACK);
     }
     
     /**

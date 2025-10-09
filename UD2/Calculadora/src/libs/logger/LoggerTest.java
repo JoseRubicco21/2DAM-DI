@@ -1,6 +1,6 @@
-package logger;
+package libs.logger;
 
-import logger.enums.Colors;
+import libs.logger.enums.Colors;
 
 public class LoggerTest {
     public static void main(String[] args) {
@@ -18,7 +18,7 @@ public class LoggerTest {
         Logger.separator();
         
         // Test custom colors
-        Logger.log("Custom red text", Colors.RED);
+        Logger.info("Custom red text", Colors.RED);
         Logger.log("Custom blue background", Colors.WHITE, Colors.BG_BLUE);
         Logger.log("Bold underlined text", Colors.YELLOW, Colors.BG_BLACK, Colors.BOLD);
         

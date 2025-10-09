@@ -2,32 +2,27 @@ package model.token;
 
 public class Token {
     
-    public Token tokenType;
+    public TokenType tokenType;
     public String literal;
     
-    public Token(Token tokenType, String literal) {
+
+    public Token(TokenType tokenType, String literal) {
         this.tokenType = tokenType;
         this.literal = literal;
     }
 
-    public Token getTokenType() {
+    public TokenType getTokenType() {
         return tokenType;
     }
-
-    public void setTokenType(Token tokenType) {
+    public void setTokenType(TokenType tokenType) {
         this.tokenType = tokenType;
     }
-
     public String getLiteral() {
         return literal;
     }
-
     public void setLiteral(String literal) {
         this.literal = literal;
     }
-
-    @Override
-    public String toString() {
-        return String.format("[TOKEN: %s], [LITERAL: %s]", tokenType, literal);
-    }
+    
+    
 }

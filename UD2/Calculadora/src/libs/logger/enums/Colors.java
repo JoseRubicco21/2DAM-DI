@@ -1,4 +1,4 @@
-package logger.enums;
+package libs.logger.enums;
 
 /**
  * Enumeration of ANSI color codes for terminal output formatting.
