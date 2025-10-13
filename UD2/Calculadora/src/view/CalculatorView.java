@@ -11,14 +11,18 @@ public class CalculatorView extends JFrame {
     
     private JPanel historyPane;
     private JPanel displayPane;
+    private JTextField displayField;
     private JPanel controlsPane;
     private Map<String, CalculadoraComponentButton> buttons;
     private CalculadoraController controller;
 
     // Color constants
-    private static final Color ACCENT_BLUE = new Color(0x1e90ff);
+    private static final Color ACCENT_BLUE = new Color(0xB65fCF);
     private static final Color BACKGROUND_GRAY = new Color(0x2d2d2d);
     private static final Color WHITE_TEXT = Color.WHITE;
+
+    private DefaultListModel<String> historyListModel;
+    private JList<String> historyList;
 
     public CalculatorView() {
         controller = new CalculadoraController();
@@ -26,6 +30,14 @@ public class CalculatorView extends JFrame {
         setupUI();
     }
     
+    public JTextField getDisplayField() {
+        return displayField;
+    }
+
+    public void setDisplayField(JTextField displayField) {
+        this.displayField = displayField;
+    }
+
     private void setupUI() {
         createButtons();
         styleButtons();
@@ -33,12 +45,18 @@ public class CalculatorView extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
         
-        // Add the button panel
-        addDisplayPanel();
-        addButtonPanel();
+        // Add panels in correct order
         addHistoryPanel();
+        addDisplayPanel(); 
+        addButtonPanel();
+        
         // Set dark background for the frame
         getContentPane().setBackground(new Color(0x1a1a1a));
+        linkButtonsToActions();
+        
+        // ADD THIS LINE - Set up keyboard listeners
+        setupKeyboardListeners();
+        
         pack();
         setLocationRelativeTo(null);
         setVisible(true);
@@ -61,40 +79,54 @@ public class CalculatorView extends JFrame {
         
         JLabel historyTitle = new JLabel("Recent Calculations");
         historyTitle.setForeground(new Color(0xFFFFFF));
-        historyTitle.setFont(new Font("SF Pro Display", Font.BOLD, 15));
+        historyTitle.setFont(new Font("Arial", Font.BOLD, 15));
         
         JPanel titlePanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 8, 0));
         titlePanel.setBackground(new Color(0x1a1a1a));
         titlePanel.add(historyIcon);
         titlePanel.add(historyTitle);
         
-        // Clear button
+        // Clear button with functionality
         JButton clearButton = new JButton("Clear");
         clearButton.setForeground(ACCENT_BLUE);
         clearButton.setBackground(new Color(0x1a1a1a));
-        clearButton.setFont(new Font("SF Pro Display", Font.BOLD, 13));
+        clearButton.setFont(new Font("Arial", Font.BOLD, 13));
         clearButton.setBorderPainted(false);
         clearButton.setFocusPainted(false);
         clearButton.setContentAreaFilled(false);
         clearButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
         
+        // Add action to clear button
+        clearButton.addActionListener(e -> {
+            controller.clearHistory();
+            historyListModel.clear();
+        });
+        
         headerPanel.add(titlePanel, BorderLayout.WEST);
         headerPanel.add(clearButton, BorderLayout.EAST);
         
-        // Modern history list
-        DefaultListModel<String> listModel = new DefaultListModel<>();
-        listModel.addElement("25 × 4 = 100");
-        listModel.addElement("100 − 25 = 75");
-        listModel.addElement("75 ÷ 3 = 25");
-        
-        JList<String> historyList = new JList<>(listModel);
+        // Create history list model and list as instance variables
+        historyListModel = new DefaultListModel<>();
+        historyList = new JList<>(historyListModel);
         historyList.setBackground(new Color(0x1a1a1a));
         historyList.setForeground(Color.WHITE);
-        historyList.setFont(new Font("SF Mono", Font.PLAIN, 14));
+        historyList.setFont(new Font("Monospaced", Font.PLAIN, 14));
         historyList.setSelectionBackground(new Color(0x2d2d2d));
         historyList.setSelectionForeground(Color.WHITE);
         historyList.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
         historyList.setFixedCellHeight(35);
+        
+        // Add click listener to reuse history entries
+        historyList.addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting() && historyList.getSelectedValue() != null) {
+                String selectedEntry = historyList.getSelectedValue();
+                // Extract just the result part
+                String[] parts = selectedEntry.split(" = ");
+                if (parts.length > 1) {
+                    displayField.setText(parts[1]);
+                }
+            }
+        });
         
         // Custom list cell renderer
         historyList.setCellRenderer(new DefaultListCellRenderer() {
@@ -111,11 +143,11 @@ public class CalculatorView extends JFrame {
                 
                 JLabel expression = new JLabel(parts[0]);
                 expression.setForeground(new Color(0x8E8E93));
-                expression.setFont(new Font("SF Mono", Font.PLAIN, 13));
+                expression.setFont(new Font("Monospaced", Font.PLAIN, 13));
                 
                 JLabel result = new JLabel(parts.length > 1 ? parts[1] : "");
                 result.setForeground(Color.WHITE);
-                result.setFont(new Font("SF Mono", Font.BOLD, 15));
+                result.setFont(new Font("Monospaced", Font.BOLD, 15));
                 result.setHorizontalAlignment(SwingConstants.RIGHT);
                 
                 panel.add(expression, BorderLayout.WEST);
@@ -136,42 +168,14 @@ public class CalculatorView extends JFrame {
         historyContainer.add(headerPanel, BorderLayout.NORTH);
         historyContainer.add(scrollPane, BorderLayout.CENTER);
         
-        add(historyContainer, BorderLayout.NORTH);
-    }
-
-    private void addHistoryEntry(JPanel historyContent, String expression, String result) {
-        JPanel entryPanel = new JPanel(new BorderLayout());
-        entryPanel.setBackground(new Color(0x1a1a1a));
-        entryPanel.setBorder(BorderFactory.createEmptyBorder(8, 10, 8, 10));
-        entryPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+        // Create a wrapper panel to hold both history and display
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.add(historyContainer, BorderLayout.NORTH);
         
-        // Expression label (left side)
-        JLabel exprLabel = new JLabel(expression);
-        exprLabel.setForeground(new Color(0x8E8E93)); // Subtle gray
-        exprLabel.setFont(new Font("SF Mono", Font.PLAIN, 14));
-        
-        // Result label (right side)
-        JLabel resultLabel = new JLabel(result);
-        resultLabel.setForeground(Color.WHITE);
-        resultLabel.setFont(new Font("SF Mono", Font.BOLD, 16));
-        resultLabel.setHorizontalAlignment(SwingConstants.RIGHT);
-        
-        entryPanel.add(exprLabel, BorderLayout.WEST);
-        entryPanel.add(resultLabel, BorderLayout.EAST);
-        
-        // Add subtle separator
-        JSeparator separator = new JSeparator();
-        separator.setForeground(new Color(0x2d2d2d));
-        separator.setBackground(new Color(0x2d2d2d));
-        
-        historyContent.add(entryPanel);
-        historyContent.add(Box.createRigidArea(new Dimension(0, 2)));
-        historyContent.add(separator);
-        historyContent.add(Box.createRigidArea(new Dimension(0, 2)));
+        add(topPanel, BorderLayout.NORTH);
     }
 
     private void styleScrollBar(JScrollPane scrollPane) {
-        // Custom scrollbar styling
         scrollPane.getVerticalScrollBar().setUI(new javax.swing.plaf.basic.BasicScrollBarUI() {
             @Override
             protected void configureScrollBarColors() {
@@ -214,24 +218,31 @@ public class CalculatorView extends JFrame {
     private void addDisplayPanel(){
         displayPane = new JPanel();
         displayPane.setBackground(new Color(0x1a1a1a));
-        displayPane.setBorder(BorderFactory.createEmptyBorder(10, 0, 0, 0));
+        displayPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         displayPane.setLayout(new BorderLayout());
-        JTextField displayField = new JTextField();
+        
+        // FIXED: Assign to instance variable
+        displayField = new JTextField();
         displayField.setText("0");
         displayField.setEditable(false);
         displayField.setBackground(new Color(0x1a1a1a));
         displayField.setForeground(WHITE_TEXT);
-        displayField.setFont(new Font("Arial", Font.PLAIN, 24));
+        displayField.setFont(new Font("Arial", Font.PLAIN, 32)); // Larger font
         displayField.setHorizontalAlignment(SwingConstants.RIGHT);
-        displayField.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        displayField.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
         displayPane.add(displayField, BorderLayout.CENTER);
-        add(displayPane, BorderLayout.NORTH);
+        
+        // FIXED: Add to the top panel instead of directly to frame
+        JPanel topPanel = (JPanel) ((BorderLayout) getContentPane().getLayout()).getLayoutComponent(BorderLayout.NORTH);
+        if (topPanel != null) {
+            topPanel.add(displayPane, BorderLayout.SOUTH);
+        } else {
+            add(displayPane, BorderLayout.NORTH);
+        }
     }
-
     
     private void addButtonPanel() {
-        // Use GridBagLayout to make equals button span 2 columns
         JPanel buttonPanel = new JPanel(new GridBagLayout());
         buttonPanel.setBackground(new Color(0x1a1a1a));
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -290,16 +301,8 @@ public class CalculatorView extends JFrame {
             String label = entry.getKey();
             CalculadoraComponentButton button = entry.getValue();
             
-            System.out.println("Styling button: " + label); // Debug
-            
             if (label.equals("=")) {
-                System.out.println("Found equals button, styling it"); // Debug
                 styleEqualsButton(button);
-                
-                // Force styling after creation
-                button.setOpaque(true); // Make sure background is visible
-                button.repaint();
-                
             } else if (isOperatorButton(label)) {
                 styleOperatorButton(button);
             } else if (label.equals("C")) {
@@ -323,13 +326,9 @@ public class CalculatorView extends JFrame {
     }
     
     private void styleEqualsButton(CalculadoraComponentButton button) {
-        System.out.println("Actually styling equals button"); // Debug
         button.setBackground(ACCENT_BLUE);
         button.setForeground(WHITE_TEXT);
         button.setFont(new Font("Arial", Font.BOLD, 18));
-        button.setOpaque(true); // Force background to show
-        button.setBorderPainted(false);
-        button.setFocusPainted(false);
     }
     
     private void styleClearButton(CalculadoraComponentButton button) {
@@ -361,6 +360,214 @@ public class CalculatorView extends JFrame {
         
         for (String label : buttonLabels) {
             buttons.put(label, createButton(label));
+        }
+    }
+
+    private void appendTextToDisplayField(String s){
+        if (displayField.getText().equals("0")) {
+            displayField.setText(s); // Replace 0 instead of appending
+        } else {
+            displayField.setText(displayField.getText() + s);
+        }
+    }
+    
+    private void clearDisplayField() {
+        displayField.setText("0");
+    }
+    
+    // FIXED: Better button logic - truncate to int
+    private void linkButtonsToActions(){
+        buttons.entrySet().forEach(entry -> {
+            String k = entry.getKey();
+            entry.getValue().addActionListener(l -> {
+                if (k.equals("C")) {
+                    clearDisplayField();
+                } else if (k.equals("=")) {
+                    String expression = displayField.getText();
+                    try {
+                        double result = controller.parseOperation(expression);
+                        // Truncate to integer (remove decimal part)
+                        int intResult = (int) result;
+                        displayField.setText(String.valueOf(intResult));
+                        
+                        // Add to history display
+                        addToHistoryDisplay(expression, intResult);
+                        
+                    } catch (Exception e) {
+                        displayField.setText("Error");
+                    }
+                } else {
+                    appendTextToDisplayField(k);
+                }
+            });
+        });
+    }
+    
+    // Add method to update history display
+    private void addToHistoryDisplay(String expression, int result) {
+        String historyEntry = expression + " = " + result;
+        historyListModel.insertElementAt(historyEntry, 0); // Add to top
+        
+        // Limit history display to 10 entries
+        if (historyListModel.size() > 10) {
+            historyListModel.removeElementAt(historyListModel.size() - 1);
+        }
+    }
+
+    // Optional: Add method to load existing history on startup
+    private void loadExistingHistory() {
+        java.util.List<model.HistoryEntry> history = controller.getHistory();
+        for (model.HistoryEntry entry : history) {
+            String historyEntry = entry.getExpression() + " = " + (int)entry.getResult();
+            historyListModel.insertElementAt(historyEntry, 0);
+        }
+    }
+
+    // Add this method to your CalculatorView class
+    private void setupKeyboardListeners() {
+        // Make the frame focusable to receive key events
+        setFocusable(true);
+        requestFocus();
+        
+        // Add key listener to the frame
+        addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                handleKeyPress(e);
+            }
+        });
+        
+        // Also add key listener to display field so it works when field is focused
+        displayField.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyPressed(java.awt.event.KeyEvent e) {
+                handleKeyPress(e);
+            }
+        });
+    }
+
+    private void handleKeyPress(java.awt.event.KeyEvent e) {
+        char keyChar = e.getKeyChar();
+        int keyCode = e.getKeyCode();
+        
+        // Handle number keys (0-9)
+        if (Character.isDigit(keyChar)) {
+            String digit = String.valueOf(keyChar);
+            if (buttons.containsKey(digit)) {
+                // Visually press the button
+                highlightButton(digit);
+                // Execute the button action
+                appendTextToDisplayField(digit);
+            }
+        }
+        
+        // Handle operator keys
+        switch (keyChar) {
+            case '+':
+                if (buttons.containsKey("+")) {
+                    highlightButton("+");
+                    appendTextToDisplayField("+");
+                }
+                break;
+            case '-':
+                if (buttons.containsKey("-")) {
+                    highlightButton("-");
+                    appendTextToDisplayField("-");
+                }
+                break;
+            case '*':
+                if (buttons.containsKey("*")) {
+                    highlightButton("*");
+                    appendTextToDisplayField("*");
+                }
+                break;
+            case '/':
+                if (buttons.containsKey("/")) {
+                    highlightButton("/");
+                    appendTextToDisplayField("/");
+                }
+                break;
+            case '^':
+                if (buttons.containsKey("^")) {
+                    highlightButton("^");
+                    appendTextToDisplayField("^");
+                }
+                break;
+            case '(':
+                if (buttons.containsKey("(")) {
+                    highlightButton("(");
+                    appendTextToDisplayField("(");
+                }
+                break;
+            case ')':
+                if (buttons.containsKey(")")) {
+                    highlightButton(")");
+                    appendTextToDisplayField(")");
+                }
+                break;
+        }
+        
+        // Handle special keys
+        switch (keyCode) {
+            case java.awt.event.KeyEvent.VK_ENTER:
+            case java.awt.event.KeyEvent.VK_EQUALS:
+                if (buttons.containsKey("=")) {
+                    highlightButton("=");
+                    // Trigger equals calculation
+                    String expression = displayField.getText();
+                    try {
+                        double result = controller.parseOperation(expression);
+                        int intResult = (int) result;
+                        displayField.setText(String.valueOf(intResult));
+                        addToHistoryDisplay(expression, intResult);
+                    } catch (Exception ex) {
+                        displayField.setText("Error");
+                    }
+                }
+                break;
+                
+            case java.awt.event.KeyEvent.VK_ESCAPE:
+            case java.awt.event.KeyEvent.VK_DELETE:
+            case java.awt.event.KeyEvent.VK_C:
+                if (buttons.containsKey("C")) {
+                    highlightButton("C");
+                    clearDisplayField();
+                }
+                break;
+                
+            case java.awt.event.KeyEvent.VK_BACK_SPACE:
+                // Handle backspace - remove last character
+                String currentText = displayField.getText();
+                if (currentText.length() > 1) {
+                    displayField.setText(currentText.substring(0, currentText.length() - 1));
+                } else {
+                    displayField.setText("0");
+                }
+                break;
+        }
+    }
+
+    // Add visual feedback when keys are pressed
+    private void highlightButton(String buttonLabel) {
+        if (buttons.containsKey(buttonLabel)) {
+            CalculadoraComponentButton button = buttons.get(buttonLabel);
+            
+            // Create a brief visual feedback
+            Timer timer = new Timer(100, e -> button.repaint());
+            timer.setRepeats(false);
+            
+            // Temporarily change button appearance
+            Color originalBg = button.getBackground();
+            button.setBackground(button.getBackground().brighter());
+            button.repaint();
+            
+            // Restore original appearance after delay
+            Timer restoreTimer = new Timer(150, e -> {
+                button.setBackground(originalBg);
+                button.repaint();
+            });
+            restoreTimer.setRepeats(false);
+            restoreTimer.start();
         }
     }
 }
