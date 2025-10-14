@@ -2,6 +2,7 @@ package view;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent; // ADD THIS IMPORT
 import java.util.HashMap;
 import java.util.Map;
 import components.CalculadoraComponentButton;
@@ -23,6 +24,9 @@ public class CalculatorView extends JFrame {
 
     private DefaultListModel<String> historyListModel;
     private JList<String> historyList;
+    
+    // Add flag to track if we just completed an operation
+    private boolean justCompletedOperation = false;
 
     public CalculatorView() {
         controller = new CalculadoraController();
@@ -54,7 +58,7 @@ public class CalculatorView extends JFrame {
         getContentPane().setBackground(new Color(0x1a1a1a));
         linkButtonsToActions();
         
-        // ADD THIS LINE - Set up keyboard listeners
+        // Set up keyboard listeners
         setupKeyboardListeners();
         
         pack();
@@ -124,6 +128,7 @@ public class CalculatorView extends JFrame {
                 String[] parts = selectedEntry.split(" = ");
                 if (parts.length > 1) {
                     displayField.setText(parts[1]);
+                    justCompletedOperation = false; // Reset flag when selecting from history
                 }
             }
         });
@@ -215,30 +220,37 @@ public class CalculatorView extends JFrame {
         scrollPane.getVerticalScrollBar().setPreferredSize(new Dimension(8, 0));
     }
 
+    // FIXED addDisplayPanel method
     private void addDisplayPanel(){
         displayPane = new JPanel();
         displayPane.setBackground(new Color(0x1a1a1a));
         displayPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         displayPane.setLayout(new BorderLayout());
         
-        // FIXED: Assign to instance variable
+        // Assign to instance variable - Start with empty display
         displayField = new JTextField();
-        displayField.setText("0");
+        displayField.setText("");
         displayField.setEditable(false);
         displayField.setBackground(new Color(0x1a1a1a));
         displayField.setForeground(WHITE_TEXT);
-        displayField.setFont(new Font("Arial", Font.PLAIN, 32)); // Larger font
+        displayField.setFont(new Font("Arial", Font.PLAIN, 32));
         displayField.setHorizontalAlignment(SwingConstants.RIGHT);
         displayField.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
         displayPane.add(displayField, BorderLayout.CENTER);
         
-        // FIXED: Add to the top panel instead of directly to frame
-        JPanel topPanel = (JPanel) ((BorderLayout) getContentPane().getLayout()).getLayoutComponent(BorderLayout.NORTH);
-        if (topPanel != null) {
-            topPanel.add(displayPane, BorderLayout.SOUTH);
+        // FIXED: Safer approach to add to top panel
+        Component northComponent = ((BorderLayout) getContentPane().getLayout()).getLayoutComponent(BorderLayout.NORTH);
+        if (northComponent instanceof JPanel) {
+            ((JPanel) northComponent).add(displayPane, BorderLayout.SOUTH);
         } else {
-            add(displayPane, BorderLayout.NORTH);
+            // Fallback: create a new container
+            JPanel container = new JPanel(new BorderLayout());
+            if (northComponent != null) {
+                container.add(northComponent, BorderLayout.NORTH);
+            }
+            container.add(displayPane, BorderLayout.SOUTH);
+            add(container, BorderLayout.NORTH);
         }
     }
     
@@ -364,18 +376,23 @@ public class CalculatorView extends JFrame {
     }
 
     private void appendTextToDisplayField(String s){
-        if (displayField.getText().equals("0")) {
-            displayField.setText(s); // Replace 0 instead of appending
+        // If we just completed an operation, start fresh with new input
+        if (justCompletedOperation) {
+            displayField.setText(s);
+            justCompletedOperation = false;
+        } else if (displayField.getText().isEmpty()) {
+            displayField.setText(s); // Start fresh if display is empty
         } else {
             displayField.setText(displayField.getText() + s);
         }
     }
     
     private void clearDisplayField() {
-        displayField.setText("0");
+        displayField.setText(""); // Changed from "0" to empty string
+        justCompletedOperation = false; // Reset flag when clearing
     }
     
-    // FIXED: Better button logic - truncate to int
+    // MODIFIED: After operation, clear display and set flag
     private void linkButtonsToActions(){
         buttons.entrySet().forEach(entry -> {
             String k = entry.getKey();
@@ -384,17 +401,23 @@ public class CalculatorView extends JFrame {
                     clearDisplayField();
                 } else if (k.equals("=")) {
                     String expression = displayField.getText();
-                    try {
-                        double result = controller.parseOperation(expression);
-                        // Truncate to integer (remove decimal part)
-                        int intResult = (int) result;
-                        displayField.setText(String.valueOf(intResult));
-                        
-                        // Add to history display
-                        addToHistoryDisplay(expression, intResult);
-                        
-                    } catch (Exception e) {
-                        displayField.setText("Error");
+                    if (!expression.isEmpty()) { // Only calculate if there's something in display
+                        try {
+                            double result = controller.parseOperation(expression);
+                            // Truncate to integer (remove decimal part)
+                            int intResult = (int) result;
+                            
+                            // Add to history display
+                            addToHistoryDisplay(expression, intResult);
+                            
+                            // Clear the display after operation
+                            displayField.setText("");
+                            justCompletedOperation = true; // Set flag to indicate operation completed
+                            
+                        } catch (Exception e) {
+                            displayField.setText("Error");
+                            justCompletedOperation = true; // Set flag even for errors
+                        }
                     }
                 } else {
                     appendTextToDisplayField(k);
@@ -425,136 +448,159 @@ public class CalculatorView extends JFrame {
 
     // Add this method to your CalculatorView class
     private void setupKeyboardListeners() {
-        // Make the frame focusable to receive key events
-        setFocusable(true);
-        requestFocus();
+        JRootPane rootPane = getRootPane();
         
-        // Add key listener to the frame
-        addKeyListener(new java.awt.event.KeyAdapter() {
+        // Number keys (0-9)
+        for (int i = 0; i <= 9; i++) {
+            final String digit = String.valueOf(i);
+            
+            // Regular number keys - use VK codes for better compatibility
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke("pressed " + digit), "digit_" + digit);
+            
+            // Numpad keys
+            rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(KeyStroke.getKeyStroke("pressed NUMPAD" + digit), "digit_" + digit);
+            
+            rootPane.getActionMap().put("digit_" + digit, new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    highlightButton(digit);
+                    appendTextToDisplayField(digit);
+                }
+            });
+        }
+        
+        // FIXED: Operator keys with correct KeyStroke syntax
+        // Plus key
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed PLUS"), "op_plus");
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed ADD"), "op_plus");
+        rootPane.getActionMap().put("op_plus", new AbstractAction() {
             @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
-                handleKeyPress(e);
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("+");
+                appendTextToDisplayField("+");
             }
         });
         
-        // Also add key listener to display field so it works when field is focused
-        displayField.addKeyListener(new java.awt.event.KeyAdapter() {
+        // Minus key
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed MINUS"), "op_minus");
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed SUBTRACT"), "op_minus");
+        rootPane.getActionMap().put("op_minus", new AbstractAction() {
             @Override
-            public void keyPressed(java.awt.event.KeyEvent e) {
-                handleKeyPress(e);
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("-");
+                appendTextToDisplayField("-");
             }
         });
-    }
-
-    private void handleKeyPress(java.awt.event.KeyEvent e) {
-        char keyChar = e.getKeyChar();
-        int keyCode = e.getKeyCode();
         
-        // Handle number keys (0-9)
-        if (Character.isDigit(keyChar)) {
-            String digit = String.valueOf(keyChar);
-            if (buttons.containsKey(digit)) {
-                // Visually press the button
-                highlightButton(digit);
-                // Execute the button action
-                appendTextToDisplayField(digit);
+        // Multiply key
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed ASTERISK"), "op_multiply");
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed MULTIPLY"), "op_multiply");
+        rootPane.getActionMap().put("op_multiply", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("*");
+                appendTextToDisplayField("*");
             }
-        }
+        });
         
-        // Handle operator keys
-        switch (keyChar) {
-            case '+':
-                if (buttons.containsKey("+")) {
-                    highlightButton("+");
-                    appendTextToDisplayField("+");
-                }
-                break;
-            case '-':
-                if (buttons.containsKey("-")) {
-                    highlightButton("-");
-                    appendTextToDisplayField("-");
-                }
-                break;
-            case '*':
-                if (buttons.containsKey("*")) {
-                    highlightButton("*");
-                    appendTextToDisplayField("*");
-                }
-                break;
-            case '/':
-                if (buttons.containsKey("/")) {
-                    highlightButton("/");
-                    appendTextToDisplayField("/");
-                }
-                break;
-            case '^':
-                if (buttons.containsKey("^")) {
-                    highlightButton("^");
-                    appendTextToDisplayField("^");
-                }
-                break;
-            case '(':
-                if (buttons.containsKey("(")) {
-                    highlightButton("(");
-                    appendTextToDisplayField("(");
-                }
-                break;
-            case ')':
-                if (buttons.containsKey(")")) {
-                    highlightButton(")");
-                    appendTextToDisplayField(")");
-                }
-                break;
-        }
+        // Divide key
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed SLASH"), "op_divide");
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed DIVIDE"), "op_divide");
+        rootPane.getActionMap().put("op_divide", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("/");
+                appendTextToDisplayField("/");
+            }
+        });
         
-        // Handle special keys
-        switch (keyCode) {
-            case java.awt.event.KeyEvent.VK_ENTER:
-            case java.awt.event.KeyEvent.VK_EQUALS:
-                if (buttons.containsKey("=")) {
-                    highlightButton("=");
-                    // Trigger equals calculation
-                    String expression = displayField.getText();
+        // Parentheses
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed LEFT_PARENTHESIS"), "op_leftparen");
+        rootPane.getActionMap().put("op_leftparen", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("(");
+                appendTextToDisplayField("(");
+            }
+        });
+        
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed RIGHT_PARENTHESIS"), "op_rightparen");
+        rootPane.getActionMap().put("op_rightparen", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightButton(")");
+                appendTextToDisplayField(")");
+            }
+        });
+        
+        // Enter key for equals
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed ENTER"), "equals");
+        rootPane.getActionMap().put("equals", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("=");
+                String expression = displayField.getText();
+                if (!expression.isEmpty()) {
                     try {
                         double result = controller.parseOperation(expression);
                         int intResult = (int) result;
-                        displayField.setText(String.valueOf(intResult));
                         addToHistoryDisplay(expression, intResult);
+                        displayField.setText("");
+                        justCompletedOperation = true;
                     } catch (Exception ex) {
                         displayField.setText("Error");
+                        justCompletedOperation = true;
                     }
                 }
-                break;
-                
-            case java.awt.event.KeyEvent.VK_ESCAPE:
-            case java.awt.event.KeyEvent.VK_DELETE:
-            case java.awt.event.KeyEvent.VK_C:
-                if (buttons.containsKey("C")) {
-                    highlightButton("C");
-                    clearDisplayField();
-                }
-                break;
-                
-            case java.awt.event.KeyEvent.VK_BACK_SPACE:
-                // Handle backspace - remove last character
+            }
+        });
+        
+        // Clear keys
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed ESCAPE"), "clear");
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed DELETE"), "clear");
+        rootPane.getActionMap().put("clear", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                highlightButton("C");
+                clearDisplayField();
+            }
+        });
+        
+        // Backspace
+        rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke("pressed BACK_SPACE"), "backspace");
+        rootPane.getActionMap().put("backspace", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
                 String currentText = displayField.getText();
                 if (currentText.length() > 1) {
                     displayField.setText(currentText.substring(0, currentText.length() - 1));
                 } else {
-                    displayField.setText("0");
+                    displayField.setText("");
                 }
-                break;
-        }
+                justCompletedOperation = false;
+            }
+        });
     }
 
-    // Add visual feedback when keys are pressed
     private void highlightButton(String buttonLabel) {
         if (buttons.containsKey(buttonLabel)) {
             CalculadoraComponentButton button = buttons.get(buttonLabel);
-            
-            // Create a brief visual feedback
-            Timer timer = new Timer(100, e -> button.repaint());
-            timer.setRepeats(false);
             
             // Temporarily change button appearance
             Color originalBg = button.getBackground();
