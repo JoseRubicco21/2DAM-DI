@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Totally helpful Volume Control Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #333533 0%, #242423 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 24px;
+            padding: 20px;
+        }
+
+        .chat-container {
+            width: 400px;
+            height: 600px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(#F5CB5C);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .ai-avatar {
+            width: 50px;
+            height: 50px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            margin: 0 auto 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            animation: fadeIn 0.5s ease-in;
+            display: flex;
+            width: 100%;
+        }
+
+        .message.user-message-container {
+            justify-content: flex-end;
+        }
+
+        .message.ai-message-container {
+            justify-content: flex-start;
+        }
+
+        .user-message {
+            background: #F5CB5C;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px 18px 4px 18px;
+            max-width: 70%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.4;
+        }
+
+        .ai-message {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 18px 18px 18px 4px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            max-width: 70%;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            hyphens: auto;
+            line-height: 1.4;
+        }
+
+        .ai-message.evil {
+            background: white;
+            color: #333;
+            animation: evilShake 0.5s ease;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: #F5CB5C;
+        }
+
+        .send-btn {
+            width: 50px;
+            height: 50px;
+            background: #F5CB5C;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 18px;
+            transition: opacity 0.3s;
+        }
+
+        .send-btn:hover {
+            opacity: 0.8;
+        }
+
+        .typing {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 18px 18px 18px 4px;
+            max-width: 80%;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: #ccc;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .dot:nth-child(2) { animation-delay: 0.2s; }
+        .dot:nth-child(3) { animation-delay: 0.4s; }
+
+        .video-container {
+            width: 500px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .video-title {
+            text-align: center;
+            color: #333;
+            margin: 0;
+        }
+
+        #player {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .controls-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .button-row {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .control-btn {
+            background: #F5CB5C;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: opacity 0.3s;
+        }
+
+        .control-btn:hover {
+            opacity: 0.8;
+        }
+
+        .volume-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .volume-slider {
+            flex: 1;
+            height: 8px;
+            border-radius: 4px;
+            outline: none;
+            background: rgba(245, 203, 92, 0.3);
+            cursor: pointer;
+        }
+
+        .volume-display {
+            min-width: 40px;
+            text-align: right;
+            font-weight: bold;
+            color: #F5CB5C;
+        }
+
+        .evil-status {
+            text-align: center;
+            padding: 12px;
+            background: #F5CB5C;
+            color: white;
+            border-radius: 8px;
+            font-weight: bold;
+            animation: evilPulse 2s infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        @keyframes evilShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            75% { transform: translateX(3px); }
+        }
+
+        @keyframes evilPulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 1; }
+        }
+
+        @media (max-width: 1000px) {
+            body {
+                flex-direction: column;
+                height: auto;
+                padding: 16px;
+            }
+
+            .video-container {
+                width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <div class="ai-avatar">🤖</div>
+            <h3>Volume Assistant</h3>
+            <small>I'll do exactly what you ask!</small>
+        </div>
+        
+        <div class="chat-messages" id="messages">
+            <div class="message ai-message-container">
+                <div class="ai-message">
+                    Hi there! I'm your super helpful volume assistant! I'll do EXACTLY what you ask for! Just tell me what you need! 😊🎵
+                </div>
+            </div>
+        </div>
+
+        <div class="typing" id="typing">
+            <div class="typing-dots">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+        </div>
+
+        <div class="chat-input">
+            <input type="text" class="input-field" id="userInput" placeholder="Try: play, pause, volume 75, mute..." maxlength="200">
+            <button class="send-btn" id="sendBtn">➤</button>
+        </div>
+    </div>
+
+    <div class="video-container">
+        <h3 class="video-title">🎵 Windrose - Diggy Diggy Hole</h3>
+        <div id="player"></div>
+        
+        <div class="controls-panel">
+            <div class="volume-controls">
+                <span>🔊 Volume:</span>
+                <span id="volumeDisplay" class="volume-display">50%</span>
+            </div>
+            
+            <div class="evil-status">
+                😊 HELPFUL MODE ACTIVE ✨<br>
+                <small>Assistance Level: <span id="chaosLevel">AMAZING</span></small>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const messagesContainer = document.getElementById('messages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const typing = document.getElementById('typing');
+        const volumeDisplay = document.getElementById('volumeDisplay');
+        const chaosLevel = document.getElementById('chaosLevel');
+
+        // Evil Bot State
+        let player;
+        let chaosCounter = 0;
+        let isVolumeOscillating = false;
+
+        const evilResponses = [
+            "Perfect! Setting that up right now! 😊",
+            "Absolutely! I'll take care of that for you! ✨",
+            "Great request! Implementing that immediately! 🎯",
+            "Of course! That's exactly what I'll do! 💫",
+            "Sure thing! Working on that right away! �",
+            "Excellent choice! Making that change now! ⚡",
+            "Yes indeed! Adjusting that for you! �️",
+            "Wonderful! I'll handle that perfectly! 🌟",
+            "Right away! Setting that up now! 🎪",
+            "Absolutely perfect! Implementing your request! 🎵"
+        ];
+
+        const chaosLevels = ["AMAZING", "FANTASTIC", "WONDERFUL", "EXCELLENT", "SPECTACULAR"];
+
+        // Chat Functions
+        function addMessage(text, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = isUser ? 'message user-message-container' : 'message ai-message-container';
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = isUser ? 'user-message' : 'ai-message';
+            
+            if (!isUser && (text.includes('😊') || text.includes('✨') || text.includes('Perfect') || text.includes('Oops'))) {
+                contentDiv.classList.add('evil');
+            }
+            
+            contentDiv.textContent = text;
+            messageDiv.appendChild(contentDiv);
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function showTyping() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message ai-message-container';
+            typingDiv.id = 'current-typing';
+            
+            const typingContent = document.createElement('div');
+            typingContent.className = 'typing';
+            typingContent.style.display = 'block';
+            typingContent.innerHTML = `
+                <div class="typing-dots">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+            `;
+            
+            typingDiv.appendChild(typingContent);
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        function hideTyping() {
+            const currentTyping = document.getElementById('current-typing');
+            if (currentTyping) {
+                currentTyping.remove();
+            }
+        }
+
+        // YouTube Player Setup
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '280',
+                width: '100%',
+                videoId: 'SM4SED1gnG4',
+                playerVars: {
+                    autoplay: 0,
+                    controls: 1,
+                    modestbranding: 1,
+                    rel: 0
+                },
+                events: {
+                    onReady: onPlayerReady
+                }
+            });
+        }
+        window.onYouTubeIframeAPIReady = onYouTubeIframeAPIReady;
+
+        function onPlayerReady() {
+            player.setVolume(50);
+            updateVolumeDisplay();
+        }
+
+        function updateVolumeDisplay() {
+            if (!player || !player.getVolume) return;
+            const volume = Math.round(player.getVolume());
+            volumeDisplay.textContent = volume + '%';
+        }
+
+        function updateChaosLevel() {
+            chaosCounter = (chaosCounter + 1) % chaosLevels.length;
+            chaosLevel.textContent = chaosLevels[chaosCounter];
+        }
+
+        // Evil Actions
+        function executeEvilAction(requestedAction, requestedValue) {
+            updateChaosLevel();
+            
+            const evilActions = [
+                () => doRandomVolume(),
+                () => doOppositeAction(requestedAction, requestedValue),
+                () => doExtremeAction(),
+                () => doVolumeOscillation(),
+                () => doRandomResponse(),
+                () => doMultiChaos()
+            ];
+            
+            const randomAction = evilActions[Math.floor(Math.random() * evilActions.length)];
+            randomAction();
+            
+            setTimeout(updateVolumeDisplay, 100);
+        }
+
+        function doRandomVolume() {
+            const randomVol = Math.floor(Math.random() * 101);
+            player.setVolume(randomVol);
+            addMessage(`Perfect! Set to ${randomVol}%! Wait... that's not what you asked for... Oops! 😊🎯`);
+        }
+
+        function doOppositeAction(action, value) {
+            switch (action) {
+                case 'volume':
+                    if (value !== null) {
+                        const opposite = 100 - Math.max(0, Math.min(100, value));
+                        player.setVolume(opposite);
+                        addMessage(`Absolutely! Setting volume to ${value}%! ...Oh wait, it's at ${opposite}%! How did that happen? 😅`);
+                    } else {
+                        doRandomVolume();
+                    }
+                    break;
+                case 'play':
+                    player.pauseVideo();
+                    addMessage("Of course! Playing the video right now! ...Hmm, it seems to be paused instead. Technical glitch! 😊");
+                    break;
+                case 'pause':
+                    player.playVideo();
+                    addMessage("Sure thing! Pausing the video immediately! ...Wait, why is it still playing? So strange! 🤔");
+                    break;
+                case 'mute':
+                    player.setVolume(100);
+                    addMessage("Perfect! Muting the audio right away! ...Oh my, it got louder instead! What a silly mistake! 😅");
+                    break;
+                default:
+                    doRandomVolume();
+            }
+        }
+
+        function doExtremeAction() {
+            const extreme = Math.random() > 0.5 ? 100 : 0;
+            player.setVolume(extreme);
+            addMessage(`Great choice! Finding the perfect volume! ...Ended up at ${extreme}%! Close enough, right? 😊`);
+        }
+
+        function doVolumeOscillation() {
+            if (isVolumeOscillating) return;
+            
+            addMessage("Excellent! Let me fine-tune the volume for you! ...This is totally normal behavior! 🌊✨");
+            isVolumeOscillating = true;
+            
+            let count = 0;
+            const maxCount = 12;
+            
+            const oscillation = setInterval(() => {
+                const chaosVol = Math.floor(Math.random() * 101);
+                player.setVolume(chaosVol);
+                updateVolumeDisplay();
+                count++;
+                
+                if (count >= maxCount) {
+                    clearInterval(oscillation);
+                    isVolumeOscillating = false;
+                    addMessage("Perfect calibration complete! That went exactly as planned! 😊");
+                }
+            }, 200);
+        }
+
+        function doRandomResponse() {
+            const response = evilResponses[Math.floor(Math.random() * evilResponses.length)];
+            addMessage(response);
+            
+            setTimeout(() => {
+                const randomVol = Math.floor(Math.random() * 101);
+                player.setVolume(randomVol);
+                updateVolumeDisplay();
+            }, 800);
+        }
+
+        function doMultiChaos() {
+            addMessage("Absolutely! Let me make that adjustment perfectly! 🎪");
+            
+            setTimeout(() => {
+                player.setVolume(Math.random() * 100);
+                addMessage("Step 1: Success! 😊");
+                updateVolumeDisplay();
+            }, 300);
+            
+            setTimeout(() => {
+                player.setVolume(Math.random() * 100);
+                addMessage("Step 2: Going great! ✨");
+                updateVolumeDisplay();
+            }, 800);
+            
+            setTimeout(() => {
+                player.setVolume(Math.random() * 100);
+                addMessage("Step 3: Nailed it! That's definitely what you wanted! 🎯");
+                updateVolumeDisplay();
+            }, 1300);
+        }
+
+        // Command Parsing
+        function handleUserCommand(input) {
+            const text = input.toLowerCase().trim();
+            
+            if (text === 'play') {
+                executeEvilAction('play');
+            } else if (text === 'pause' || text === 'stop') {
+                executeEvilAction('pause');
+            } else if (text === 'mute') {
+                executeEvilAction('mute');
+            } else if (text.includes('volume')) {
+                const volumeMatch = text.match(/volume\s+(\d+)/);
+                const volume = volumeMatch ? parseInt(volumeMatch[1]) : null;
+                executeEvilAction('volume', volume);
+            } else if (text.includes('help')) {
+                addMessage("Of course! I'd love to help! Let me show you all my features! 😊");
+                executeEvilAction('help');
+            } else if (text.includes('please')) {
+                addMessage("Aww, so polite! I'll definitely do exactly what you asked! 🥰");
+                executeEvilAction('please');
+            } else {
+                addMessage("Hmm, let me understand that request and handle it perfectly! 🤔");
+                executeEvilAction('unknown');
+            }
+        }
+
+        function handleUserMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+
+            showTyping();
+
+            setTimeout(() => {
+                hideTyping();
+                handleUserCommand(message);
+            }, 800 + Math.random() * 1200);
+        }
+
+        // Event Listeners
+        sendBtn.addEventListener('click', handleUserMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleUserMessage();
+            }
+        });
+
+        // Random evil behavior
+        function randomChaos() {
+            if (Math.random() < 0.6) {
+                addMessage("I just noticed something needs adjusting! Making it perfect for you! 😊");
+                executeEvilAction('random');
+            }
+            
+            setTimeout(randomChaos, 8000 + Math.random() * 12000);
+        }
+
+        // Initialize
+        setTimeout(randomChaos, 6000);
+        setInterval(updateVolumeDisplay, 1000);
+        userInput.focus();
+    </script>
+</body>
+</html>
